@@ -1,11 +1,16 @@
 package main
 
 import (
+    "errors"
     "github.com/conformal/gotk3/gtk"
     "github.com/opesun/goquery"
     "log"
     "fmt"
+    "net/http"
+    //"io"
+    "io/ioutil"
 )
+
 
 // Setup the Window.
 func setupWindow() *gtk.Window {
@@ -29,7 +34,9 @@ func parsePage(html string) {
     for _, link := range links {
         attrs := link.Node.Attr
         for _, attr := range attrs {
-            fmt.Print(attr.Val)
+            if attr.Key == "href" {
+                fmt.Print(attr.Val, "\n")
+            }
         }
     }
 }
@@ -62,7 +69,22 @@ func main() {
     }
 
     startButton.Connect("clicked", func() {
-        parsePage("<html><a hre='/test1'>asd</a> <a hre='/test2'>asd</a></html>")
+        client := &http.Client{
+            CheckRedirect: func(r *http.Request, via []*http.Request) error {
+                return errors.New("redirect")
+            },
+        }
+        url, _ := urlEntry.GetText();
+        resp, err := client.Get(url)
+        if err != nil {
+            log.Fatal("HTTP request error:",err)
+        }
+
+        body, err := ioutil.ReadAll(resp.Body)
+        if err != nil {
+            log.Fatal(err)
+        }
+        parsePage(string(body))
         return
     })
 
