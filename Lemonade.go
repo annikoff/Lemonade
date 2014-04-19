@@ -11,6 +11,17 @@ import (
     "io/ioutil"
 )
 
+type Node struct {
+    url            string
+    body           string
+    statusCode     int
+    referers       map[string]bool
+    extUrlsCounter int
+    intUrlsCounter int
+    isInternal     bool
+    contentType    string
+    isNofollow     bool
+}
 
 // Setup the Window.
 func setupWindow() *gtk.Window {
@@ -41,6 +52,24 @@ func parsePage(html string) {
     }
 }
 
+func httpRequest(url string) string {
+    client := &http.Client{
+        CheckRedirect: func(r *http.Request, via []*http.Request) error {
+            return errors.New("redirect")
+        },
+    }
+    resp, err := client.Get(url)
+    if err != nil {
+        log.Fatal("HTTP request error:",err)
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return string(body)
+}
+
 func main() {
 
     gtk.Init(nil)
@@ -69,22 +98,8 @@ func main() {
     }
 
     startButton.Connect("clicked", func() {
-        client := &http.Client{
-            CheckRedirect: func(r *http.Request, via []*http.Request) error {
-                return errors.New("redirect")
-            },
-        }
-        url, _ := urlEntry.GetText();
-        resp, err := client.Get(url)
-        if err != nil {
-            log.Fatal("HTTP request error:",err)
-        }
-
-        body, err := ioutil.ReadAll(resp.Body)
-        if err != nil {
-            log.Fatal(err)
-        }
-        parsePage(string(body))
+        url, _ := urlEntry.GetText()
+        parsePage(httpRequest(url))
         return
     })
 
