@@ -1,22 +1,14 @@
-var http = require("http");
-var url = require("url");
-var htmlparser = require("htmlparser2");
-var crypto = require('crypto');
-var md5 = crypto.createHash('md5');
-var startUrl = url.parse("http://yournewbusiness.ru/sitemap?test&тест");
+var http = require('http');
+var url = require('url');
+var htmlparser = require('htmlparser2');
+var md5 = require('MD5');
+var startUrl = '';
 
-var results;
+var result = [];
 
 function start(parsedUrl) {
     
-    var options = {
-      hostname: parsedUrl.host,
-      port: 80,
-      path: parsedUrl.path,
-      method: 'GET'
-    };
-
-    var req = http.request(options, function(res) {
+    var req = http.get(startUrl, function(res) {
       console.log('STATUS: ' + res.statusCode);
       console.log('HEADERS: ' + JSON.stringify(res.headers));
       res.setEncoding('utf8');
@@ -33,20 +25,25 @@ function start(parsedUrl) {
 }
 
 function parseHtml(body) {
-    var base = "";
     var parser = new htmlparser.Parser({
+        base: '',
         onopentag: function(name, attribs){
-            if(name === "base"){
-                base = attribs.href;
-                console.log("base:" + attribs.href);
+            if(name === 'base'){
+                this.base = attribs.href;
+                console.log('base:' + this.base);
             }
-            if(name === "a"){
-                console.log(base);
-                if (base != "") {
-                    console.log(md5.update(attribs.href) + url.resolve(base, attribs.href));
+            if(name === 'a'){
+                if (this.base != '') {
+                    var resolvedUrl = url.resolve(this.base, attribs.href.replace(/&amp;/, '&'));
                 }else {
-                    console.log(md5.update(attribs.href) + url.resolve(startUrl.href, attribs.href));
+                    var resolvedUrl = url.resolve(startUrl, attribs.href.replace(/&amp;/, '&'));
                 }
+                var hash = md5(resolvedUrl);
+                if (result[hash] == undefined) {
+                    result[hash] = {'url': resolvedUrl};
+                    console.log(result[hash]);
+                }
+               // console.log(result[hash]);
             }
         }
     });
