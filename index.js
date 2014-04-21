@@ -3,6 +3,7 @@ var url = require('url');
 var htmlparser = require('htmlparser2');
 var md5 = require('MD5');
 var events = require('events');
+var eventEmitter = new events.EventEmitter();
 
 var startUrl = '';
 
@@ -10,8 +11,19 @@ var parsed = [];
 var result = [];
 
 function start(currentUrl) {
-    
-    var req = http.get(currentUrl, function(res) {
+    var paresedUrl = url.parse(currentUrl);
+
+    if (paresedUrl.protocol != 'http:') {
+        return;
+    }
+    var options = {
+        host: paresedUrl.host,
+        port: '80',
+        path: paresedUrl.path,
+        method: 'GET'
+    }
+
+    var req = http.request(options, function(res) {
       console.log('STATUS: ' + res.statusCode);
       console.log('HEADERS: ' + JSON.stringify(res.headers));
       res.setEncoding('utf8');
@@ -21,7 +33,9 @@ function start(currentUrl) {
         console.log(parsed[hash]);
       }
       res.on('data', function (body) {
-        parseHtml(body);
+        if (res.statusCode == 200 || res.statusCode == 404) {
+            parseHtml(body);
+        }
       });
     });
 
@@ -39,7 +53,7 @@ function parseHtml(body) {
             if(name === 'base'){
                 this.base = attribs.href;
             }
-            if(name === 'a'){
+            if(name === 'a' && attribs.href != undefined){
                 if (this.base != '') {
                     var resolvedUrl = url.resolve(this.base, attribs.href.replace(/&amp;/, '&'));
                 }else {
@@ -48,6 +62,7 @@ function parseHtml(body) {
                 var hash = md5(resolvedUrl);
                 if (result[hash] == undefined && parsed[hash] == undefined) {
                     result[hash] = {'url': resolvedUrl};
+                    eventEmitter.emit('linkFound', resolvedUrl);
                 }
             }
         }
@@ -55,5 +70,10 @@ function parseHtml(body) {
     parser.write(body);
     parser.end();
 }
+
+eventEmitter.on('linkFound', function(resolvedUrl){
+    start(resolvedUrl);
+    console.log(resolvedUrl);
+});
 
 start(startUrl);
