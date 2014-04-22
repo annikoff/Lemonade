@@ -9,8 +9,10 @@ var startUrl = '';
 
 var parsed = [];
 var result = [];
+var maxThreads = 5;
+var threads = 0;
 
-function start(currentUrl) {
+function start(currentUrl, id) {
     var paresedUrl = url.parse(currentUrl);
 
     if (paresedUrl.protocol != 'http:') {
@@ -24,19 +26,29 @@ function start(currentUrl) {
     }
 
     var req = http.request(options, function(res) {
-      console.log('STATUS: ' + res.statusCode);
-      console.log('HEADERS: ' + JSON.stringify(res.headers));
+      //console.log('STATUS: ' + res.statusCode);
+      //console.log('HEADERS: ' + JSON.stringify(res.headers));
       res.setEncoding('utf8');
       var hash = md5(currentUrl);
-      if (parsed[hash] == undefined) {
-        parsed[hash] = {'url': currentUrl, 'statusCode': res.statusCode};
-        console.log(parsed[hash]);
+      if (!hasHash(parsed, hash)) {
+        parsed.push({'hash': hash, 'url': currentUrl, 'statusCode': res.statusCode});
+        console.log(id+" | "+res.statusCode+" | "+currentUrl);
       }
-      res.on('data', function (body) {
-        if (res.statusCode == 200 || res.statusCode == 404) {
-            parseHtml(body);
-        }
+
+      var html = "";
+
+      res.on('data', function (chunk) {
+            html += chunk;
       });
+
+      res.on('end', function () {
+        if (res.statusCode == 200 || res.statusCode == 404) {
+            parseHtml(html);
+        }
+        threads--;
+        eventEmitter.emit('threadDone');
+      });
+
     });
 
     req.on('error', function(e) {
@@ -60,9 +72,8 @@ function parseHtml(body) {
                     var resolvedUrl = url.resolve(startUrl, attribs.href.replace(/&amp;/, '&'));
                 }
                 var hash = md5(resolvedUrl);
-                if (result[hash] == undefined && parsed[hash] == undefined) {
-                    result[hash] = {'url': resolvedUrl};
-                    eventEmitter.emit('linkFound', resolvedUrl);
+                if (!hasHash(result, hash) && !hasHash(parsed, hash)) {
+                    result.push({'hash': hash, 'url': resolvedUrl});
                 }
             }
         }
@@ -71,9 +82,26 @@ function parseHtml(body) {
     parser.end();
 }
 
-eventEmitter.on('linkFound', function(resolvedUrl){
-    start(resolvedUrl);
-    console.log(resolvedUrl);
-});
+function hasHash(array, hash) {
+    var check = array.filter(function(array) {
+        return array.hash === hash;
+    });
 
-start(startUrl);
+    if (check.length) {
+        return true;
+    }else {
+        return false;
+    }
+}
+
+eventEmitter.on('threadDone', function() {
+    for (var i = 1; i <= maxThreads; i++) {
+        if (threads < maxThreads) {
+            threads++;
+            start(result[0]['url'], threads);
+            result.splice(0, 1);
+        }
+    }
+});
+threads++;
+start(startUrl, 1);
