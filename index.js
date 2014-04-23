@@ -12,7 +12,8 @@ var result = [];
 var maxThreads = 5;
 var threads = 0;
 
-function start(currentUrl, id) {
+function start(inputUrl, id) {
+    var currentUrl = inputUrl.url;
     var paresedUrl = url.parse(currentUrl);
 
     if (paresedUrl.protocol != 'http:') {
@@ -30,8 +31,8 @@ function start(currentUrl, id) {
       //console.log('HEADERS: ' + JSON.stringify(res.headers));
       res.setEncoding('utf8');
       var hash = md5(currentUrl);
-      if (!hasHash(parsed, hash)) {
-        parsed.push({'hash': hash, 'url': currentUrl, 'statusCode': res.statusCode});
+      if (parsed[hash] == undefined) {
+        parsed[hash] = {'url': currentUrl, 'statusCode': res.statusCode, 'referrer': []};
         console.log(id+" | "+res.statusCode+" | "+currentUrl);
       }
 
@@ -43,7 +44,9 @@ function start(currentUrl, id) {
 
       res.on('end', function () {
         if (res.statusCode == 200 || res.statusCode == 404) {
-            parseHtml(html);
+            parseHtml(html, currentUrl);
+            parsed[hash]['html'] = html;
+            parsed[hash]['referrer'].push(inputUrl.referrer);
         }
         threads--;
         eventEmitter.emit('threadDone');
@@ -58,7 +61,7 @@ function start(currentUrl, id) {
     req.end();
 }
 
-function parseHtml(body) {
+function parseHtml(body, referrer) {
     var parser = new htmlparser.Parser({
         base: '',
         onopentag: function(name, attribs){
@@ -72,8 +75,12 @@ function parseHtml(body) {
                     var resolvedUrl = url.resolve(startUrl, attribs.href.replace(/&amp;/, '&'));
                 }
                 var hash = md5(resolvedUrl);
-                if (!hasHash(result, hash) && !hasHash(parsed, hash)) {
-                    result.push({'hash': hash, 'url': resolvedUrl});
+                if (result[hash] == undefined) {
+                    if (parsed[hash] == undefined) {
+                        result[hash] = {'url': resolvedUrl, 'referrer': referrer};
+                    }else {
+                        parsed[hash]['referrer'].push(referrer);
+                    }
                 }
             }
         }
@@ -95,13 +102,20 @@ function hasHash(array, hash) {
 }
 
 eventEmitter.on('threadDone', function() {
-    for (var i = 1; i <= maxThreads; i++) {
+    for (hash in result) {
         if (threads < maxThreads) {
             threads++;
-            start(result[0]['url'], threads);
-            result.splice(0, 1);
+            start(result[hash], threads);
+            delete result[hash];
+        }else {
+            break;
         }
     }
 });
 threads++;
-start(startUrl, 1);
+var hash = md5(startUrl);
+result[hash] = {'url': startUrl, 'referrer': ''}
+start(result[hash], 1);
+setInterval(function () {
+    //console.log(Object.keys(parsed).length+' | '+Object.keys(result).length);
+}, 10);
