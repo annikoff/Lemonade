@@ -1,18 +1,30 @@
 package annikoff.lemonade;
 
 public class Link {
+
+    public String href;
     public String text;
-    public String path;
     public String alt;
     public String title;
-    public boolean noFollow;
-    public Link(String text, String path, String alt, String title, boolean noFollow) {
+    public boolean noFollow = false;
+    public boolean external = false;
+
+    public Link(String href, String text,  String alt, String title, boolean noFollow) {
+        this.href = href;
         this.text = text;
-        this.path = path;
         this.alt = alt;
         this.title = title;
         this.noFollow = noFollow;
     }
-    public Link() {
+
+    public Link(String href, boolean noFollow) {
+        this.href = href;
+        this.noFollow = noFollow;
     }
+
+    public Link(String href) {
+        this.href = href;
+    }
+
+    public Link() {}
 }

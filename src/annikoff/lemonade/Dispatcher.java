@@ -13,7 +13,7 @@ public class Dispatcher extends Thread {
     }
 
     public void run(){
-        Worker worker = new Worker("");
+        Worker worker = new Worker("http://yournewbusiness.ru/");
         worker.start();
     }
 

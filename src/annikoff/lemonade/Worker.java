@@ -45,9 +45,12 @@ public class Worker extends Thread {
         System.out.println(connection.getResponseCode());
           //String html = lemonade.readStreamToString(connection.getInputStream());
         Reader reader = new InputStreamReader(connection.getInputStream());
-        LinkCollector lc = new LinkCollector();
+        LinkCollector lc = new LinkCollector(urlToParse);
         new ParserDelegator().parse(reader, lc, false);
-        System.out.println(lc.getList());
+        lc.flush();
+        for (Link link: lc.getList()) {
+            System.out.println(link.href + "|" + link.external);
+        }
     }catch (Exception e) {
       System.out.println(e.getMessage());
     }
