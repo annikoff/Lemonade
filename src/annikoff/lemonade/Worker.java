@@ -15,14 +15,20 @@ import javax.swing.text.*;
 import javax.swing.text.html.*;
 import javax.swing.text.html.parser.*;
 import annikoff.lemonade.*;
+import java.util.Queue;
 
 public class Worker extends Thread {
 
     private String urlToParse;
+    public Queue<String> qe;
+    public ArrayList<Link> list;
+    public Dispatcher parent;
 
-    public Worker(String url){
+    public Worker(String url, Queue<String> qe, Dispatcher parent){
         super();
-        urlToParse = url;
+        this.urlToParse = url;
+        this.qe = qe;
+        this.parent = parent;
     }
 
     private String readStreamToString(InputStream in) throws IOException {
@@ -42,17 +48,19 @@ public class Worker extends Thread {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setFollowRedirects(false);
         connection.setRequestProperty("User-Agent", "Lemonade");
-        System.out.println(connection.getResponseCode());
+        System.out.println(connection.getResponseCode() + " " + urlToParse);
           //String html = lemonade.readStreamToString(connection.getInputStream());
         Reader reader = new InputStreamReader(connection.getInputStream());
         LinkCollector lc = new LinkCollector(urlToParse);
         new ParserDelegator().parse(reader, lc, false);
         lc.flush();
-        for (Link link: lc.getList()) {
-            System.out.println(link.href + "|" + link.external);
+        for (Link l: lc.getList()) {
+            qe.add(l.href);
         }
     }catch (Exception e) {
       System.out.println(e.getMessage());
     }
+    parent.threadsCount--;
+    System.out.println("test");
   }
 }
