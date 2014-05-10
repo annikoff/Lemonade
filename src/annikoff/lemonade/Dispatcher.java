@@ -10,26 +10,36 @@ public class Dispatcher extends Thread {
 
     private int maxThreadsCount = 5;
     public int threadsCount = 0;
-    final ArrayList<Link> list = new ArrayList<Link>();
+    final ArrayList<String> list = new ArrayList<String>();
 
     public Dispatcher(){
         super();
     }
 
     public void run(){
+        String startUrl = "";
         Queue<String> qe = new LinkedList<String>();
         threadsCount = 1;
-        Worker worker = new Worker("", qe, this);
+        Worker worker = new Worker(startUrl, qe, this);
+        Thread thread = new Thread(worker);
         worker.run();
-        
+        list.add(startUrl);
 
         while(!qe.isEmpty()) {
-            if (threadsCount < maxThreadsCount) {
-                threadsCount++;
-                new Worker(qe.poll(), qe, this).start();
-                System.out.println(threadsCount);
+
+            String url = qe.poll();
+            if (!list.contains(url)) {
+                if (threadsCount < maxThreadsCount) {
+                    threadsCount++;
+                    new Thread(new Worker(url, qe, this)).start();  
+                    list.add(url);              
+                }
+                try {
+                    this.sleep(100);
+                }catch (InterruptedException e) {
+                  System.out.println(e.getMessage());
+                }
             }
-            //
         }
     }
 

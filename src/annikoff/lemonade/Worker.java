@@ -17,7 +17,7 @@ import javax.swing.text.html.parser.*;
 import annikoff.lemonade.*;
 import java.util.Queue;
 
-public class Worker extends Thread {
+public class Worker implements Runnable {
 
     private String urlToParse;
     public Queue<String> qe;
@@ -54,13 +54,16 @@ public class Worker extends Thread {
         LinkCollector lc = new LinkCollector(urlToParse);
         new ParserDelegator().parse(reader, lc, false);
         lc.flush();
-        for (Link l: lc.getList()) {
-            qe.add(l.href);
-        }
+          synchronized (this) {
+            for (Link l: lc.getList()) {
+                qe.add(l.href);
+            }
+            parent.threadsCount--;
+          }
+
     }catch (Exception e) {
       System.out.println(e.getMessage());
     }
-    parent.threadsCount--;
-    System.out.println("test");
+    
   }
 }
