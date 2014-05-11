@@ -72,8 +72,8 @@ public class LinkCollector extends HTMLEditorKit.ParserCallback {
                 link.href = uri.toString();
                 list.set(list.indexOf(link), link);
             }
-        }catch (Exception e) {
-          System.out.println(e.getMessage());
+        }catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 

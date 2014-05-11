@@ -21,14 +21,13 @@ public class Worker implements Runnable {
 
     private String urlToParse;
     public Queue<String> qe;
-    public ArrayList<Link> list;
-    public Dispatcher parent;
+    public ArrayList<String> list;
 
-    public Worker(String url, Queue<String> qe, Dispatcher parent){
+    public Worker(String url, Queue<String> qe, ArrayList<String> list){
         super();
         this.urlToParse = url;
         this.qe = qe;
-        this.parent = parent;
+        this.list = list;
     }
 
     private String readStreamToString(InputStream in) throws IOException {
@@ -45,25 +44,32 @@ public class Worker implements Runnable {
   public void run() {
     try {
         URL url = new URL(urlToParse);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setFollowRedirects(false);
-        connection.setRequestProperty("User-Agent", "Lemonade");
-        System.out.println(connection.getResponseCode() + " " + urlToParse);
-          //String html = lemonade.readStreamToString(connection.getInputStream());
-        Reader reader = new InputStreamReader(connection.getInputStream());
-        LinkCollector lc = new LinkCollector(urlToParse);
-        new ParserDelegator().parse(reader, lc, false);
-        lc.flush();
-          synchronized (this) {
-            for (Link l: lc.getList()) {
-                qe.add(l.href);
+       // if (url.toURI().getScheme() == "http") {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setFollowRedirects(false);
+            connection.setRequestProperty("User-Agent", "Lemonade");
+            System.out.println(connection.getResponseCode() + " " + urlToParse);
+              //String html = lemonade.readStreamToString(connection.getInputStream());
+            if (connection.getContentType().indexOf("text/html") != -1) {
+                Reader reader = new InputStreamReader(connection.getInputStream());
+                LinkCollector lc = new LinkCollector(urlToParse);
+                new ParserDelegator().parse(reader, lc, false);
+                lc.flush();
+                synchronized (this) {
+                    for (Link l: lc.getList()) {
+                        if (!list.contains(l.href) && !qe.contains(l.href) && !l.external) {
+                            qe.add(l.href);
+                        }
+                    }
+                }
             }
-            parent.threadsCount--;
-          }
-
-    }catch (Exception e) {
-      System.out.println(e.getMessage());
+       // }
+    }catch (Exception ex) {
+        System.out.println(urlToParse);  
+        ex.printStackTrace();
     }
-    
+    synchronized (this) {
+        list.add(urlToParse);
+    }
   }
 }

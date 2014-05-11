@@ -5,41 +5,37 @@ import annikoff.lemonade.*;
 import java.util.Queue;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.*;
 
 public class Dispatcher extends Thread {
 
-    private int maxThreadsCount = 5;
+    private int maxThreadsCount = 10;
     public int threadsCount = 0;
     final ArrayList<String> list = new ArrayList<String>();
+    private String startUrl;
 
-    public Dispatcher(){
+    public Dispatcher(String startUrl){
         super();
+        this.startUrl = startUrl;
     }
 
     public void run(){
-        String startUrl = "";
         Queue<String> qe = new LinkedList<String>();
         threadsCount = 1;
-        Worker worker = new Worker(startUrl, qe, this);
+        Worker worker = new Worker(startUrl, qe, list);
         Thread thread = new Thread(worker);
         worker.run();
-        list.add(startUrl);
 
+        ExecutorService service = Executors.newFixedThreadPool(maxThreadsCount);
         while(!qe.isEmpty()) {
-
             String url = qe.poll();
-            if (!list.contains(url)) {
-                if (threadsCount < maxThreadsCount) {
-                    threadsCount++;
-                    new Thread(new Worker(url, qe, this)).start();  
-                    list.add(url);              
-                }
-                try {
-                    this.sleep(100);
-                }catch (InterruptedException e) {
-                  System.out.println(e.getMessage());
-                }
+            service.submit(new Worker(url, qe, list));
+            try {
+                this.sleep(100);
+            }catch (InterruptedException ex) {
+                ex.printStackTrace();
             }
+            System.out.println(qe.size());
         }
     }
 
