@@ -18,19 +18,20 @@ import javax.swing.text.html.parser.*;
 import annikoff.lemonade.*;
 import java.util.Queue;
 import java.util.Hashtable;
+import java.io.PrintWriter;
+import java.net.IDN;
+
 
 public class Worker implements Runnable {
 
     private Link urlToParse;
     public Queue<Link> qe;
-    public ArrayList<String> list;
     public Hashtable<String, Link> hashtable;
 
-    public Worker(Link url, Queue<Link> qe, ArrayList<String> list, Hashtable<String, Link> hashtable){
+    public Worker(Link url, Queue<Link> qe, Hashtable<String, Link> hashtable){
         super();
         this.urlToParse = url;
         this.qe = qe;
-        this.list = list;
         this.hashtable = hashtable;
     }
 
@@ -73,16 +74,16 @@ public class Worker implements Runnable {
                     //}
                 } catch (Exception ex) {
                     System.out.println(ex.getMessage());
+                    urlToParse.errorMessage = ex.getMessage();
                 } 
             } catch (IOException ex) {
                 System.out.println(ex.getMessage());
+                urlToParse.errorMessage = ex.getMessage();
             }
         }catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
+            urlToParse.errorMessage = ex.getMessage();
         }
-        synchronized (this) {
-            list.add(urlToParse.href);
-            hashtable.put(urlToParse.href, urlToParse);
-        }
+        hashtable.put(urlToParse.href, urlToParse);
   }
 }

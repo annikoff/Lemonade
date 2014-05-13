@@ -12,7 +12,6 @@ public class Dispatcher extends Thread {
 
     private int maxThreadsCount = 10;
     public int threadsCount = 0;
-    final ArrayList<String> list = new ArrayList<String>();
     final Hashtable<String, Link> hashtable = new Hashtable<String, Link>();
     private Link startUrl;
 
@@ -24,7 +23,7 @@ public class Dispatcher extends Thread {
     public void run(){
         Queue<Link> qe = new LinkedList<Link>();
         threadsCount = 1;
-        Worker worker = new Worker(startUrl, qe, list, hashtable);
+        Worker worker = new Worker(startUrl, qe, hashtable);
         Thread thread = new Thread(worker);
         worker.run();
 
@@ -32,7 +31,7 @@ public class Dispatcher extends Thread {
         while(!qe.isEmpty()) {
             Link url = qe.poll();
             if (hashtable.get(url.href) == null) {
-                service.submit(new Worker(url, qe, list, hashtable));
+                service.submit(new Worker(url, qe, hashtable));
                 try {
                     this.sleep(100);
                 }catch (InterruptedException ex) {

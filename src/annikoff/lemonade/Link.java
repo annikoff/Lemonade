@@ -9,6 +9,7 @@ public class Link {
     public boolean noFollow = false;
     public boolean external = false;
     public int statusCode;
+    public String errorMessage;
 
     public Link(String href, String text,  String alt, String title, boolean noFollow) {
         this.href = href;
