@@ -8,6 +8,7 @@ public class Link {
     public String title;
     public boolean noFollow = false;
     public boolean external = false;
+    public int statusCode;
 
     public Link(String href, String text,  String alt, String title, boolean noFollow) {
         this.href = href;
