@@ -9,6 +9,8 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URI;
+import java.net.IDN;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.Exception;
@@ -19,8 +21,9 @@ import annikoff.lemonade.*;
 import java.util.Queue;
 import java.util.Hashtable;
 import java.io.PrintWriter;
-import java.net.IDN;
-
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
 
 public class Worker implements Runnable {
 
@@ -48,7 +51,13 @@ public class Worker implements Runnable {
 
     public void run() {
         try {
+
             URL url = new URL(urlToParse.href);
+            try {
+                url = createSafeURI(url).toURL();
+            }catch (URISyntaxException ex) {
+                ex.getStackTrace();
+            }
             // if (url.toURI().getScheme() == "http") {
             try {
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -85,5 +94,23 @@ public class Worker implements Runnable {
             urlToParse.errorMessage = ex.getMessage();
         }
         hashtable.put(urlToParse.href, urlToParse);
-  }
+    }
+
+    public static URI createSafeURI(final URL url) throws URISyntaxException {
+
+        String path = url.getPath();
+        String query = url.getQuery();
+        try {
+            if (path != null) {
+                path = URLDecoder.decode(path, "UTF-8");
+            }
+            if (url.getQuery() != null) {
+                query = URLDecoder.decode(url.getQuery(), "UTF-8");
+            }
+        }catch (UnsupportedEncodingException ex) {
+            ex.getStackTrace();
+        }
+        return new URI(url.getProtocol(), url.getUserInfo(), IDN.toASCII(url.getHost()), url.getPort(), path, query, url.getRef());    
+    }
+
 }
