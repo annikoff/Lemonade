@@ -39,6 +39,7 @@ public class Worker implements Runnable {
     }
 
     private String readStreamToString(InputStream in) throws IOException {
+
         String line;
         StringBuilder builder = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
@@ -100,7 +101,9 @@ public class Worker implements Runnable {
 
         String path = url.getPath();
         String query = url.getQuery();
+        String host = url.getHost();
         try {
+            host = new String(host.getBytes(), "utf-8"); 
             if (path != null) {
                 path = URLDecoder.decode(path, "UTF-8");
             }
@@ -110,7 +113,7 @@ public class Worker implements Runnable {
         }catch (UnsupportedEncodingException ex) {
             ex.getStackTrace();
         }
-        return new URI(url.getProtocol(), url.getUserInfo(), IDN.toASCII(url.getHost()), url.getPort(), path, query, url.getRef());    
+        return new URI(url.getProtocol(), url.getUserInfo(), IDN.toASCII(host), url.getPort(), path, query, url.getRef());    
     }
 
 }
