@@ -1,7 +1,6 @@
 package annikoff.lemonade;
 
 import java.lang.Thread;
-import annikoff.lemonade.*;
 import java.util.Queue;
 import java.util.ArrayList;
 import java.util.LinkedList;

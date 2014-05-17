@@ -7,7 +7,6 @@ import javax.swing.text.html.HTML.Attribute;
 import javax.swing.text.html.HTML.Tag;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.BadLocationException;
-import annikoff.lemonade.Link;
 import java.util.ArrayList;
 import java.net.URI;
 import java.lang.String;

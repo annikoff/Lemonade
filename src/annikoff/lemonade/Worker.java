@@ -17,7 +17,6 @@ import java.lang.Exception;
 import javax.swing.text.*;
 import javax.swing.text.html.*;
 import javax.swing.text.html.parser.*;
-import annikoff.lemonade.*;
 import java.util.Queue;
 import java.util.Hashtable;
 import java.io.PrintWriter;
@@ -103,7 +102,7 @@ public class Worker implements Runnable {
         String query = url.getQuery();
         String host = url.getHost();
         try {
-            host = new String(host.getBytes(), "utf-8"); 
+            //host = new String(host.getBytes(), "utf-8"); 
             if (path != null) {
                 path = URLDecoder.decode(path, "UTF-8");
             }
