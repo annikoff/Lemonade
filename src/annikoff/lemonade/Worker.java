@@ -1,6 +1,5 @@
 package annikoff.lemonade;
 
-import java.lang.Thread;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,30 +10,33 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URI;
 import java.net.IDN;
-import java.util.ArrayList;
-import java.util.List;
 import java.lang.Exception;
-import javax.swing.text.*;
-import javax.swing.text.html.*;
 import javax.swing.text.html.parser.*;
 import java.util.Queue;
 import java.util.Hashtable;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import org.eclipse.swt.*;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 
 public class Worker implements Runnable {
 
     private Link urlToParse;
     public Queue<Link> qe;
     public Hashtable<String, Link> hashtable;
+    final Table table;
+    final Display display;
 
-    public Worker(Link url, Queue<Link> qe, Hashtable<String, Link> hashtable){
+    public Worker(Link url, Queue<Link> qe, Hashtable<String, Link> hashtable, Table table, Display display){
         super();
         this.urlToParse = url;
         this.qe = qe;
         this.hashtable = hashtable;
+        this.table = table;
+        this.display = display;
     }
 
     private String readStreamToString(InputStream in) throws IOException {
@@ -94,6 +96,15 @@ public class Worker implements Runnable {
             urlToParse.errorMessage = ex.getMessage();
         }
         hashtable.put(urlToParse.href, urlToParse);
+        display.syncExec(new Runnable() {
+            public void run() {
+                if (table.isDisposed())
+                    return;
+                TableItem item = new TableItem(table, SWT.NONE);
+                item.setText(0, Integer.toString(urlToParse.statusCode));
+                item.setText(1, urlToParse.href);
+            }
+        });
     }
 
     public static URI createSafeURI(final URL url) throws URISyntaxException {

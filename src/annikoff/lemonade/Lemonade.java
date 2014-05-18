@@ -7,6 +7,8 @@ import org.eclipse.swt.events.*;
 
 public class Lemonade {
 
+    private Dispatcher dispatcher;
+
     public static void main (String [] args) {
         Display display = new Display ();
         Shell shell = new Lemonade ().open (display);
@@ -16,39 +18,37 @@ public class Lemonade {
         display.dispose ();
     }
 
-    public Shell open (Display display) {
+    public Shell open (final Display display) {
         Shell shell = new Shell (display);
         shell.setText("Lemonade - website scanner");
         shell.setSize(700,300);
-        shell.setLayout(new RowLayout());
 
+        GridLayout gridLayout = new GridLayout(3, false);
+        shell.setLayout(gridLayout);
+
+        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.grabExcessHorizontalSpace = true;
         Label label = new Label(shell, SWT.LEFT);
         label.setText("URL");
+        label.setLayoutData(gridData);
 
         final Text textUrl = new Text(shell, SWT.BORDER);
-        textUrl.setText("http://yournewbusiness.ru/");
+        
+        textUrl.setLayoutData(gridData);
 
         final Button buttonStart = new Button(shell, SWT.PUSH);
         buttonStart.setText("Start");
+        buttonStart.setLayoutData(gridData);
 
-        buttonStart.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                buttonStart.setText("Stop");
-                Link link = new Link(textUrl.getText());
-                Thread d = new Dispatcher(link);
-                d.start();
-            }
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        gridData.horizontalAlignment = GridData.CENTER;
 
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {
-
-            }
-        });
-
-        Table table = new Table(shell, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION| SWT.CHECK);
+        final Table table = new Table(shell, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION| SWT.CHECK);
         table.setLinesVisible(true);
         table.setHeaderVisible(true);
+
+        table.setLayoutData(gridData);
 
         String[] titles = { "Status Code", "URL"};
         for (int i = 0; i < titles.length; i++) {
@@ -56,15 +56,31 @@ public class Lemonade {
             column.setText(titles[i]);
         }
 
-        TableItem item = new TableItem(table, SWT.NONE);
-        item.setText(0, "200");
-        item.setText(1, "http://test/");
-
         for (int i=0; i<titles.length; i++) {
             table.getColumn (i).pack ();
         }
 
-        table.setSize(table.computeSize(SWT.DEFAULT, 200));
+        table.setSize(table.computeSize(500, 200));
+
+        buttonStart.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (dispatcher == null) {
+                    buttonStart.setText("Stop");
+                    Link link = new Link(textUrl.getText());
+                    dispatcher = new Dispatcher(link, table, display);
+                    dispatcher.start();
+                }else {
+                    dispatcher.stopWork();
+                    buttonStart.setText("Stopped");
+                }
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+
+            }
+        });
 
         shell.open ();
         return shell;
