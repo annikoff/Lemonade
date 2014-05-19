@@ -27,40 +27,43 @@ public class Lemonade {
         shell.setLayout(gridLayout);
 
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.grabExcessHorizontalSpace = true;
         Label label = new Label(shell, SWT.LEFT);
         label.setText("URL");
         label.setLayoutData(gridData);
 
         final Text textUrl = new Text(shell, SWT.BORDER);
-        
+        textUrl.setText("http://yournewbusiness.ru/");
         textUrl.setLayoutData(gridData);
 
         final Button buttonStart = new Button(shell, SWT.PUSH);
         buttonStart.setText("Start");
         buttonStart.setLayoutData(gridData);
 
-        gridData = new GridData();
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 3;
-        gridData.horizontalAlignment = GridData.CENTER;
+        gridData.grabExcessVerticalSpace = true;
+        gridData.verticalAlignment = GridData.FILL;
+        gridData.horizontalAlignment = GridData.FILL;
 
-        final Table table = new Table(shell, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION| SWT.CHECK);
+        final Table table = new Table(shell, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
         table.setLinesVisible(true);
         table.setHeaderVisible(true);
 
         table.setLayoutData(gridData);
 
-        String[] titles = { "Status Code", "URL"};
+        String[][] titles = { {"Status Code", "100"}, {"URL", "500"}};
         for (int i = 0; i < titles.length; i++) {
             TableColumn column = new TableColumn(table, SWT.NONE);
-            column.setText(titles[i]);
+            column.setWidth(Integer.parseInt(titles[i][1]));
+            column.setText(titles[i][0]);
         }
 
         for (int i=0; i<titles.length; i++) {
             table.getColumn (i).pack ();
         }
 
-        table.setSize(table.computeSize(500, 200));
+        table.setSize(500, SWT.DEFAULT);
+
 
         buttonStart.addSelectionListener(new SelectionListener() {
             @Override
