@@ -11,25 +11,24 @@ import java.util.concurrent.*;
 public class Dispatcher extends Thread {
 
     private int maxThreadsCount = 10;
-    public int threadsCount = 0;
-    final Hashtable<String, Link> hashtable = new Hashtable<String, Link>();
     private Link startUrl;
     private boolean doWork = true;
     private ExecutorService service;
     public  Queue<Link> qe = new LinkedList<Link>();
+    final Hashtable<String, Link> hashtable = new Hashtable<String, Link>();
     final Table table;
     final Display display;
 
-    public Dispatcher(Link startUrl, Table table, Display display){
+    public Dispatcher(Link startUrl, Table table, Display display, int maxThreadsCount){
         super();
         this.startUrl = startUrl;
         this.table = table;
         this.display = display;
+        this.maxThreadsCount = maxThreadsCount;
     }
 
     @Override
     public void run(){
-        threadsCount = 1;
         Worker worker = new Worker(startUrl, qe, hashtable, table, display);
         worker.run();
 

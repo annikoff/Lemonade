@@ -103,6 +103,13 @@ public class Worker implements Runnable {
                 TableItem item = new TableItem(table, SWT.NONE);
                 item.setText(0, Integer.toString(urlToParse.statusCode));
                 item.setText(1, urlToParse.href);
+                if (urlToParse.statusCode == 200) {
+                    item.setForeground(display.getSystemColor(SWT.COLOR_GREEN));
+                }else {
+                    if (urlToParse.statusCode > 400) {
+                        item.setForeground(display.getSystemColor(SWT.COLOR_DARK_RED));
+                    }
+                }
             }
         });
     }
