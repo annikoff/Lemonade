@@ -19,7 +19,7 @@ public class Lemonade {
     }
 
     public Shell open (final Display display) {
-        Shell shell = new Shell (display);
+Shell shell = new Shell (display);
         shell.setText("Lemonade - Website Scanner");
         shell.setSize(700,300);
 
@@ -33,7 +33,6 @@ public class Lemonade {
         label.setLayoutData(gridData);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 2;
         final Text textUrl = new Text(shell, SWT.BORDER);
         textUrl.setText("http://localhost/");
         textUrl.setLayoutData(gridData);
@@ -43,6 +42,12 @@ public class Lemonade {
         final Button buttonStart = new Button(shell, SWT.PUSH);
         buttonStart.setText("Start");
         buttonStart.setLayoutData(gridData);
+
+        gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+        final Button buttonStop = new Button(shell, SWT.PUSH);
+        buttonStop.setText("Stop");
+        buttonStop.setEnabled(false);
+        buttonStop.setLayoutData(gridData);
 
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
         Label labelThreads = new Label(shell, SWT.LEFT);
@@ -94,15 +99,16 @@ public class Lemonade {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 if (dispatcher == null) {
-                    buttonStart.setText("Stop");
+                    buttonStart.setText("Pause");
                     Link link = new Link(textUrl.getText());
-                    dispatcher = new Dispatcher(link, table, display, spinnerThreads.getSelection());
+                    dispatcher = new Dispatcher(link, table, display, spinnerThreads.getSelection(), spinnerDelay.getSelection());
                     dispatcher.start();
                     spinnerThreads.setEnabled(false);
                     textUrl.setEnabled(false);
+                    buttonStop.setEnabled(true);
                 }else {
                     dispatcher.stopWork();
-                    buttonStart.setText("Stopped");
+                    buttonStart.setText("Start");
                     spinnerThreads.setEnabled(true);
                     textUrl.setEnabled(true);
                 }
