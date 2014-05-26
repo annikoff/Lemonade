@@ -4,6 +4,7 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Image;
 
 public class Lemonade {
 
@@ -19,9 +20,10 @@ public class Lemonade {
     }
 
     public Shell open (final Display display) {
-Shell shell = new Shell (display);
+        Shell shell = new Shell (display);
         shell.setText("Lemonade - Website Scanner");
         shell.setSize(700,300);
+        shell.setImage(new Image(display, "icon.png"));
 
         GridLayout gridLayout = new GridLayout(10, false);
         shell.setLayout(gridLayout);
@@ -72,7 +74,7 @@ Shell shell = new Shell (display);
         final Spinner spinnerDelay = new Spinner(shell, SWT.BORDER);
         spinnerDelay.setMinimum(100);
         spinnerDelay.setMaximum(5000);
-        spinnerDelay.setSelection(500);
+        spinnerDelay.setSelection(100);
         spinnerDelay.setIncrement(100);
         spinnerDelay.setPageIncrement(1000);
         spinnerDelay.setLayoutData(gridData);
@@ -94,7 +96,6 @@ Shell shell = new Shell (display);
             column.setWidth(Integer.parseInt(titles[i][1]));
             column.setText(titles[i][0]);
         }
-
         buttonStart.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -106,11 +107,15 @@ Shell shell = new Shell (display);
                     spinnerThreads.setEnabled(false);
                     textUrl.setEnabled(false);
                     buttonStop.setEnabled(true);
+                    spinnerDelay.setEnabled(false);
                 }else {
-                    dispatcher.stopWork();
-                    buttonStart.setText("Start");
-                    spinnerThreads.setEnabled(true);
-                    textUrl.setEnabled(true);
+                    if (dispatcher.isPaused()) {
+                        dispatcher.pause(false);
+                        buttonStart.setText("Pause");
+                    }else {
+                        dispatcher.pause(true);
+                        buttonStart.setText("Start");
+                    }
                 }
             }
 
@@ -119,6 +124,25 @@ Shell shell = new Shell (display);
 
             }
         });
+
+        buttonStop.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                dispatcher.stopWork();
+                dispatcher = null;
+                spinnerThreads.setEnabled(true);
+                textUrl.setEnabled(true);
+                buttonStop.setEnabled(false);
+                spinnerDelay.setEnabled(true);
+                table.clearAll();
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {
+
+            }
+        });
+
         final Label statusLine = new Label(shell, SWT.LEFT);
         statusLine.setText("test");
         shell.open ();

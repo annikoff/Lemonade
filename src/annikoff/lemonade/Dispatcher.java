@@ -13,6 +13,7 @@ public class Dispatcher extends Thread {
     private int maxThreadsCount = 10;
     private Link startUrl;
     private boolean doWork = true;
+    private boolean isPaused = false;
     private ExecutorService service;
     public  Queue<Link> qe = new LinkedList<Link>();
     private int delay = 100;
@@ -39,7 +40,13 @@ public class Dispatcher extends Thread {
             if (!doWork) {
                 return;
             }
+            if (isPaused) {
+                continue;
+            }
             Link url = qe.poll();
+            if (url.external) {
+                continue;
+            }
             if (hashtable.get(url.href) == null) {
                 service.submit(new Worker(url, qe, hashtable, table, display));
                 try {
@@ -59,6 +66,14 @@ public class Dispatcher extends Thread {
             service.shutdownNow();
         }
         qe.clear();
+    }
+
+    public void pause(boolean isPaused) {
+        this.isPaused = isPaused;
+    }
+
+    public boolean isPaused() {
+        return isPaused;
     }
 
 }
