@@ -90,7 +90,7 @@ public class Lemonade {
         table.setHeaderVisible(true);
         table.setLayoutData(gridData);
 
-        String[][] titles = { {"Status", "100"}, {"URL", "400"}};
+        String[][] titles = { {"Status", "50"}, {"URL", "400"}};
         for (int i = 0; i < titles.length; i++) {
             TableColumn column = new TableColumn(table, SWT.NONE);
             column.setWidth(Integer.parseInt(titles[i][1]));
@@ -145,6 +145,7 @@ public class Lemonade {
 
         final Label statusLine = new Label(shell, SWT.LEFT);
         statusLine.setText("test");
+
         shell.open ();
         return shell;
     }

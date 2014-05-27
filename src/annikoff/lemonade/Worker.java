@@ -69,14 +69,14 @@ public class Worker implements Runnable {
                     urlToParse.statusCode = connection.getResponseCode();
                     System.out.println(urlToParse.statusCode + " " + urlToParse.href);
                     //String html = lemonade.readStreamToString(connection.getInputStream());
-                    if (connection.getContentType().indexOf("text/html") != -1) {
+                    if (connection.getContentType().indexOf("text/html") != -1 && !urlToParse.external) {
                         Reader reader = new InputStreamReader(connection.getInputStream());
                         LinkCollector lc = new LinkCollector(urlToParse.href);
                         new ParserDelegator().parse(reader, lc, false);
                         lc.flush();
                         synchronized (this) {
                             for (Link l: lc.getList()) {
-                                if (hashtable.get(l.href) == null && !l.external && !qe.contains(lc)) {
+                                if (hashtable.get(l.href) == null && !qe.contains(lc)) {
                                     qe.add(l);
                                 }
                             }
@@ -103,12 +103,14 @@ public class Worker implements Runnable {
                 TableItem item = new TableItem(table, SWT.NONE);
                 item.setText(0, Integer.toString(urlToParse.statusCode));
                 item.setText(1, urlToParse.href);
-                if (urlToParse.statusCode == 200) {
-                    item.setForeground(display.getSystemColor(SWT.COLOR_GREEN));
-                }else {
-                    if (urlToParse.statusCode > 400) {
-                        item.setForeground(display.getSystemColor(SWT.COLOR_DARK_RED));
-                    }
+                if (urlToParse.external) {
+                    item.setForeground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
+                }else if (urlToParse.statusCode >= 400) {
+                    item.setForeground(display.getSystemColor(SWT.COLOR_RED));
+                }else if (urlToParse.statusCode >= 300) {
+                    item.setForeground(display.getSystemColor(SWT.COLOR_DARK_BLUE));
+                }else if  (urlToParse.statusCode >= 200) {
+                    item.setForeground(display.getSystemColor(SWT.COLOR_DARK_GREEN));
                 }
             }
         });

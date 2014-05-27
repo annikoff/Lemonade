@@ -15,7 +15,7 @@ public class Dispatcher extends Thread {
     private boolean doWork = true;
     private boolean isPaused = false;
     private ExecutorService service;
-    public  Queue<Link> qe = new LinkedList<Link>();
+    public Queue<Link> qe = new LinkedList<Link>();
     private int delay = 100;
     final Hashtable<String, Link> hashtable = new Hashtable<String, Link>();
     final Table table;
@@ -44,9 +44,7 @@ public class Dispatcher extends Thread {
                 continue;
             }
             Link url = qe.poll();
-            if (url.external) {
-                continue;
-            }
+            System.out.println(hashtable.get(url.href));
             if (hashtable.get(url.href) == null) {
                 service.submit(new Worker(url, qe, hashtable, table, display));
                 try {
@@ -54,6 +52,9 @@ public class Dispatcher extends Thread {
                 }catch (InterruptedException ex) {
                     ex.printStackTrace();
                 }
+            }else {
+
+                System.out.println(hashtable.entrySet());
             }
             //System.out.println(qe.size());
         }
