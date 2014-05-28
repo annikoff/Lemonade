@@ -6,9 +6,17 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
 
-public class Lemonade {
+public class Lemonade  {
 
     private Dispatcher dispatcher;
+    private Text textUrl;
+    private Button buttonStart;
+    private Button buttonStop;
+    private Spinner spinnerThreads;
+    private Spinner spinnerDelay;
+    private Label statusLine;
+    public Table table;
+    private MessageBox messageBox;
 
     public static void main (String [] args) {
         Display display = new Display ();
@@ -22,8 +30,10 @@ public class Lemonade {
     public Shell open (final Display display) {
         Shell shell = new Shell (display);
         shell.setText("Lemonade - Website Scanner");
-        shell.setSize(700,300);
+        shell.setSize(700,500);
         shell.setImage(new Image(display, "icon.png"));
+
+        messageBox = new MessageBox(shell, SWT.ICON_INFORMATION);
 
         GridLayout gridLayout = new GridLayout(10, false);
         shell.setLayout(gridLayout);
@@ -35,18 +45,18 @@ public class Lemonade {
         label.setLayoutData(gridData);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        final Text textUrl = new Text(shell, SWT.BORDER);
+        textUrl = new Text(shell, SWT.BORDER);
         textUrl.setText("http://localhost/");
         textUrl.setLayoutData(gridData);
 
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
         gridData.horizontalSpan = 2;
-        final Button buttonStart = new Button(shell, SWT.PUSH);
+        buttonStart = new Button(shell, SWT.PUSH);
         buttonStart.setText("Start");
         buttonStart.setLayoutData(gridData);
 
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-        final Button buttonStop = new Button(shell, SWT.PUSH);
+        buttonStop = new Button(shell, SWT.PUSH);
         buttonStop.setText("Stop");
         buttonStop.setEnabled(false);
         buttonStop.setLayoutData(gridData);
@@ -57,7 +67,7 @@ public class Lemonade {
         labelThreads.setLayoutData(gridData);
 
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-        final Spinner spinnerThreads = new Spinner(shell, SWT.BORDER);
+        spinnerThreads = new Spinner(shell, SWT.BORDER);
         spinnerThreads.setMinimum(1);
         spinnerThreads.setMaximum(50);
         spinnerThreads.setSelection(5);
@@ -71,7 +81,7 @@ public class Lemonade {
         labelDelay.setLayoutData(gridData);
 
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-        final Spinner spinnerDelay = new Spinner(shell, SWT.BORDER);
+        spinnerDelay = new Spinner(shell, SWT.BORDER);
         spinnerDelay.setMinimum(100);
         spinnerDelay.setMaximum(5000);
         spinnerDelay.setSelection(100);
@@ -85,7 +95,7 @@ public class Lemonade {
         gridData.verticalAlignment = GridData.FILL;
         gridData.horizontalAlignment = GridData.FILL;
 
-        final Table table = new Table(shell, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
+        table = new Table(shell, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
         table.setLinesVisible(true);
         table.setHeaderVisible(true);
         table.setLayoutData(gridData);
@@ -96,25 +106,40 @@ public class Lemonade {
             column.setWidth(Integer.parseInt(titles[i][1]));
             column.setText(titles[i][0]);
         }
+
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 10;
+        gridData.horizontalAlignment = GridData.FILL;
+        statusLine = new Label(shell, SWT.BORDER);
+        statusLine.setText(" ");
+        statusLine.setLayoutData(gridData);
+
+        dispatcher = new Dispatcher(table, display);
+        dispatcher.addThrowListener(this);
+
         buttonStart.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (dispatcher == null) {
+                if (!dispatcher.isAlive()) {
+                    table.removeAll();
                     buttonStart.setText("Pause");
                     Link link = new Link(textUrl.getText());
-                    dispatcher = new Dispatcher(link, table, display, spinnerThreads.getSelection(), spinnerDelay.getSelection());
+                    dispatcher.init(link, spinnerThreads.getSelection(), spinnerDelay.getSelection());
                     dispatcher.start();
                     spinnerThreads.setEnabled(false);
                     textUrl.setEnabled(false);
                     buttonStop.setEnabled(true);
                     spinnerDelay.setEnabled(false);
+                    statusLine.setText("Processing...");
                 }else {
                     if (dispatcher.isPaused()) {
                         dispatcher.pause(false);
                         buttonStart.setText("Pause");
+                        statusLine.setText("Paused");
                     }else {
                         dispatcher.pause(true);
                         buttonStart.setText("Start");
+                        statusLine.setText("Processing...");
                     }
                 }
             }
@@ -129,12 +154,12 @@ public class Lemonade {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 dispatcher.stopWork();
-                dispatcher = null;
                 spinnerThreads.setEnabled(true);
                 textUrl.setEnabled(true);
                 buttonStop.setEnabled(false);
                 spinnerDelay.setEnabled(true);
-                table.clearAll();
+                table.removeAll();
+                statusLine.setText("Stopped");
             }
 
             @Override
@@ -143,10 +168,20 @@ public class Lemonade {
             }
         });
 
-        final Label statusLine = new Label(shell, SWT.LEFT);
-        statusLine.setText("test");
-
         shell.open ();
         return shell;
     }
+
+    public void done() {
+        statusLine.setText("Done");
+        spinnerThreads.setEnabled(true);
+        textUrl.setEnabled(true);
+        buttonStop.setEnabled(false);
+        spinnerDelay.setEnabled(true);
+        buttonStart.setText("Start");
+        buttonStart.setEnabled(false);
+        messageBox.setMessage("Work is done!");
+        messageBox.open();
+    }
+
 }

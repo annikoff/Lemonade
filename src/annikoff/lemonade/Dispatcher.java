@@ -15,17 +15,21 @@ public class Dispatcher extends Thread {
     private boolean doWork = true;
     private boolean isPaused = false;
     private ExecutorService service;
+    public Lemonade lemonade;
     public Queue<Link> qe = new LinkedList<Link>();
     private int delay = 100;
     final Hashtable<String, Link> hashtable = new Hashtable<String, Link>();
     final Table table;
     final Display display;
 
-    public Dispatcher(Link startUrl, Table table, Display display, int maxThreadsCount, int delay){
+    public Dispatcher(Table table, Display display){
         super();
-        this.startUrl = startUrl;
         this.table = table;
         this.display = display;
+    }
+
+    public void init(Link startUrl, int maxThreadsCount, int delay) {
+        this.startUrl = startUrl;
         this.maxThreadsCount = maxThreadsCount;
         this.delay = delay;
     }
@@ -34,7 +38,6 @@ public class Dispatcher extends Thread {
     public void run(){
         Worker worker = new Worker(startUrl, qe, hashtable, table, display);
         worker.run();
-
         service = Executors.newFixedThreadPool(maxThreadsCount);
         while(!qe.isEmpty()) {
             if (!doWork) {
@@ -53,12 +56,11 @@ public class Dispatcher extends Thread {
                     ex.printStackTrace();
                 }
             }else {
-
                 System.out.println(hashtable.entrySet());
             }
-            //System.out.println(qe.size());
         }
         service.shutdownNow();
+        throwDone();
     }
 
     public void stopWork() {
@@ -76,5 +78,18 @@ public class Dispatcher extends Thread {
     public boolean isPaused() {
         return isPaused;
     }
+
+    public void addThrowListener(Lemonade lemonade){
+        this.lemonade = lemonade;
+    }
+
+    public void throwDone() {
+        display.syncExec(new Runnable() {
+            public void run() {
+                lemonade.done();
+            }
+        });
+    }
+
 
 }
