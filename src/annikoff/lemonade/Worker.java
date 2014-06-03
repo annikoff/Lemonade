@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.IDN;
 import java.lang.Exception;
 import javax.swing.text.html.parser.*;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Hashtable;
 import java.io.UnsupportedEncodingException;
@@ -26,15 +27,15 @@ public class Worker implements Runnable {
 
     private Link urlToParse;
     public Queue<Link> qe;
-    public Hashtable<String, Link> hashtable;
+    final Map<String, Link> resultMap;
     final Table table;
     final Display display;
 
-    public Worker(Link url, Queue<Link> qe, Hashtable<String, Link> hashtable, Table table, Display display){
+    public Worker(Link url, Queue<Link> qe, Map<String, Link> resultMap, Table table, Display display){
         super();
         this.urlToParse = url;
         this.qe = qe;
-        this.hashtable = hashtable;
+        this.resultMap = resultMap;
         this.table = table;
         this.display = display;
     }
@@ -76,7 +77,7 @@ public class Worker implements Runnable {
                         lc.flush();
                         synchronized (this) {
                             for (Link l: lc.getList()) {
-                                if (hashtable.get(l.href) == null && !qe.contains(lc)) {
+                                if (resultMap.get(l.href) == null && !qe.contains(l)) {
                                     qe.add(l);
                                 }
                             }
@@ -95,7 +96,13 @@ public class Worker implements Runnable {
             System.out.println(ex.getMessage());
             urlToParse.errorMessage = ex.getMessage();
         }
-        hashtable.put(urlToParse.href, urlToParse);
+        synchronized (this) {
+            if (resultMap.get(urlToParse.href) == null) {
+                resultMap.put(urlToParse.href, urlToParse);
+            }else {
+                return;
+            }
+        }
         display.syncExec(new Runnable() {
             public void run() {
                 if (table.isDisposed())

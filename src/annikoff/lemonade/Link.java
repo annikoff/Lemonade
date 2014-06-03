@@ -1,7 +1,5 @@
 package annikoff.lemonade;
 
-import java.util.Hashtable;
-
 public class Link {
 
     public String href;
@@ -12,7 +10,6 @@ public class Link {
     public boolean external = false;
     public int statusCode;
     public String errorMessage;
-    //public Hashtable<String, boolean> referrers;
 
     public Link(String href, String text,  String alt, String title, boolean noFollow) {
         this.href = href;

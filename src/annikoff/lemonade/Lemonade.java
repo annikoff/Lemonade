@@ -32,7 +32,6 @@ public class Lemonade  {
         shell.setText("Lemonade - Website Scanner");
         shell.setSize(700,500);
         shell.setImage(new Image(display, "icon.png"));
-
         messageBox = new MessageBox(shell, SWT.ICON_INFORMATION);
 
         GridLayout gridLayout = new GridLayout(10, false);
@@ -156,9 +155,9 @@ public class Lemonade  {
                 dispatcher.stopWork();
                 spinnerThreads.setEnabled(true);
                 textUrl.setEnabled(true);
+                buttonStart.setEnabled(true);
                 buttonStop.setEnabled(false);
                 spinnerDelay.setEnabled(true);
-                table.removeAll();
                 statusLine.setText("Stopped");
             }
 

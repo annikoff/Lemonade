@@ -6,6 +6,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import java.util.LinkedList;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class Dispatcher extends Thread {
@@ -18,7 +20,7 @@ public class Dispatcher extends Thread {
     public Lemonade lemonade;
     public Queue<Link> qe = new LinkedList<Link>();
     private int delay = 100;
-    final Hashtable<String, Link> hashtable = new Hashtable<String, Link>();
+    final Map<String, Link> resultMap = new HashMap<String, Link>();
     final Table table;
     final Display display;
 
@@ -36,7 +38,7 @@ public class Dispatcher extends Thread {
 
     @Override
     public void run(){
-        Worker worker = new Worker(startUrl, qe, hashtable, table, display);
+        Worker worker = new Worker(startUrl, qe, resultMap, table, display);
         worker.run();
         service = Executors.newFixedThreadPool(maxThreadsCount);
         while(!qe.isEmpty()) {
@@ -46,17 +48,17 @@ public class Dispatcher extends Thread {
             if (isPaused) {
                 continue;
             }
-            Link url = qe.poll();
-            System.out.println(hashtable.get(url.href));
-            if (hashtable.get(url.href) == null) {
-                service.submit(new Worker(url, qe, hashtable, table, display));
-                try {
-                    this.sleep(this.delay);
-                }catch (InterruptedException ex) {
-                    ex.printStackTrace();
+
+            synchronized (this) {
+                Link url = qe.poll();
+                if (resultMap.get(url.href) == null) {
+                    service.submit(new Worker(url, qe, resultMap, table, display));
+                    try {
+                        this.sleep(this.delay);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
                 }
-            }else {
-                System.out.println(hashtable.entrySet());
             }
         }
         service.shutdownNow();
