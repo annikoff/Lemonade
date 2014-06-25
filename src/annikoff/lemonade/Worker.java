@@ -54,7 +54,13 @@ public class Worker implements Runnable {
 
     public void run() {
         try {
-
+            synchronized (this) {
+                if (resultMap.get(urlToParse.href) == null) {
+                    resultMap.put(urlToParse.href, urlToParse);
+                }else {
+                    return;
+                }
+            }
             URL url = new URL(urlToParse.href);
             try {
                 url = createSafeURI(url).toURL();
@@ -97,11 +103,7 @@ public class Worker implements Runnable {
             urlToParse.errorMessage = ex.getMessage();
         }
         synchronized (this) {
-            if (resultMap.get(urlToParse.href) == null) {
-                resultMap.put(urlToParse.href, urlToParse);
-            }else {
-                return;
-            }
+            resultMap.put(urlToParse.href, urlToParse);
         }
         display.syncExec(new Runnable() {
             public void run() {
