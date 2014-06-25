@@ -40,7 +40,7 @@ public class Worker implements Runnable {
         this.display = display;
     }
 
-    private String readStreamToString(InputStream in) throws IOException {
+    /*private String readStreamToString(InputStream in) throws IOException {
 
         String line;
         StringBuilder builder = new StringBuilder();
@@ -50,7 +50,7 @@ public class Worker implements Runnable {
             builder.append("\n"); 
         }
        return builder.toString();
-    }
+    }*/
 
     public void run() {
         try {

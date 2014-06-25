@@ -30,10 +30,4 @@ public class Link {
 
     public Link() {}
 
-   /* public void addReferrer(String referrer, boolean isNofollow) {
-        if (referrers.get(referrer) == null) {
-            referrers.put(referrer, isNofollow);
-        }
-    }*/
-
 }

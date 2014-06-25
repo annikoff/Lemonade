@@ -5,7 +5,6 @@ import java.util.Queue;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import java.util.LinkedList;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.*;
